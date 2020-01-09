@@ -1,0 +1,9 @@
+diff --git a/etc/dnf/dnf.conf b/etc/dnf/dnf.conf
+index 81b3e44..46482b9 100644
+--- a/etc/dnf/dnf.conf
++++ b/etc/dnf/dnf.conf
+@@ -2,3 +2,4 @@
+ gpgcheck=1
+ installonly_limit=3
+ clean_requirements_on_remove=True
++timeout=0

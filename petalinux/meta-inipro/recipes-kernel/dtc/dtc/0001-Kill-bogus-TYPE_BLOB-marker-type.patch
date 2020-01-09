@@ -1,0 +1,66 @@
+From d47a8c0e25d736e6ca03ff125ae9b25ffa66ce0a Mon Sep 17 00:00:00 2001
+From: Hyunok Kim <hokim@inipro.net>
+Date: Sat, 16 Nov 2019 11:56:07 +0900
+Subject: [PATCH] Kill bogus TYPE_BLOB marker type
+
+Signed-off-by: Hyunok Kim <hokim@inipro.net>
+---
+ data.c       | 2 +-
+ dtc.h        | 1 -
+ treesource.c | 9 +++++++--
+ 3 files changed, 8 insertions(+), 4 deletions(-)
+
+diff --git a/data.c b/data.c
+index accdfae..4a20414 100644
+--- a/data.c
++++ b/data.c
+@@ -95,7 +95,7 @@ struct data data_copy_file(FILE *f, size_t maxlen)
+ {
+ 	struct data d = empty_data;
+ 
+-	d = data_add_marker(d, TYPE_BLOB, NULL);
++	d = data_add_marker(d, TYPE_NONE, NULL);
+ 	while (!feof(f) && (d.len < maxlen)) {
+ 		size_t chunksize, ret;
+ 
+diff --git a/dtc.h b/dtc.h
+index 303c2a6..51c03ef 100644
+--- a/dtc.h
++++ b/dtc.h
+@@ -82,7 +82,6 @@ enum markertype {
+ 	TYPE_UINT16,
+ 	TYPE_UINT32,
+ 	TYPE_UINT64,
+-	TYPE_BLOB,
+ 	TYPE_STRING,
+ };
+ extern const char *markername(enum markertype markertype);
+diff --git a/treesource.c b/treesource.c
+index f99544d..53e6203 100644
+--- a/treesource.c
++++ b/treesource.c
+@@ -133,9 +133,14 @@ static void write_propval_int(FILE *f, const char *p, size_t len, size_t width)
+ 	}
+ }
+ 
++static bool has_data_type_information(struct marker *m)
++{
++	return m->type >= TYPE_UINT8;
++}
++
+ static struct marker *next_type_marker(struct marker *m)
+ {
+-	while (m && (m->type == LABEL || m->type == REF_PHANDLE || m->type == REF_PATH))
++	while (m && !has_data_type_information(m))
+ 		m = m->next;
+ 	return m;
+ }
+@@ -225,7 +230,7 @@ static void write_propval(FILE *f, struct property *prop)
+ 		size_t chunk_len;
+ 		const char *p = &prop->val.val[m->offset];
+ 
+-		if (m->type < TYPE_UINT8)
++		if (!has_data_type_information(m))
+ 			continue;
+ 
+ 		chunk_len = type_marker_length(m);
