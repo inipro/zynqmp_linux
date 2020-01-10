@@ -1,4 +1,9 @@
-.Xil/
+*.sw[op]
+vivado.log
+vivado.jou
+*~
+*#
+**/.Xil
 hw1/
 ip_cache/
 petalinux/ultra96

@@ -49,7 +49,7 @@ EXTRA_IMAGEDEPENDS_remove = "qemu-helper-native virtual/boot-bin"
 +
 +SIGGEN_UNLOCKED_RECIPES += "tzdata dnf-native dropbear dtc-native cmake-native"
 +
-+PREFERRED_VERSION_wilc-firmware = "15.2"
++PREFERRED_VERSION_wilc-firmware = "15.2" <--- for ultra96v2
 +
 +ULTRA96_VERSION_ultra96-zynqmp = "2"  <--- for ultra96v2
 +
@@ -128,6 +128,25 @@ $ vi project-spec/meta-user/recipes-bsp/u-boot/files/platform-top.h
 +                                {0, {{I2C_MUX_PCA9548, 0x75, 6} } }, \
 +                                {0, {{I2C_MUX_PCA9548, 0x75, 7} } }, \
 +                                }
+
+$ petalinux-config -c kernel
+
+Device Drivers -> Multimedia support
+[*] Media test drivers ===> V4L_TEST_DRIVERS=y
+
+Device Drivers -> Multimedia support -> Media test drivers
+<*> Virtual Video Test Driver ===> VIDEO_VIVID=y
+
+$ petalinux-config
+Yocto Settings -> Build tool
+(X) devtool
+
+$ petalinux-build -c kernel -x update-recipe
+
+$ petalinux-config
+Yocto Settings -> Build tool
+(X) bitbake
+
 
 $ mkdir -p project-spec/meta-user/recipes-core/images
 $ vi project-spec/meta-user/recipes-core/images/petalinux-user-image.bbappend
