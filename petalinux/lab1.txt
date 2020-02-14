@@ -137,9 +137,13 @@ Device Drivers -> Multimedia support
 Device Drivers -> Multimedia support -> Media test drivers
 <*> Virtual Video Test Driver ===> VIDEO_VIVID=y
 
-
-$ petalinux-build -c kernel -x finish -f
-
+$ petalinux-config
+Yocto Settings -> Build tool
+(X) devtool
+$ petalinux-build -c kernel -x update-recipe
+$ petalinux-config
+Yocto Settings -> Build tool
+(X) bitbake
 
 $ mkdir -p project-spec/meta-user/recipes-core/images
 $ vi project-spec/meta-user/recipes-core/images/petalinux-user-image.bbappend
