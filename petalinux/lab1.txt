@@ -166,23 +166,26 @@ $ vi project-spec/meta-user/recipes-core/images/petalinux-user-image.bbappend
 +                       packagegroup-petalinux-v4lutils \
 +                       packagegroup-petalinux-display-debug \
 +                       packagegroup-petalinux-x11 \
-+                       packagegroup-petalinux-opencv-dev \
-+                       packagegroup-petalinux-gstreamer-dev \
-+                       packagegroup-petalinux-qt-dev \
-+                       packagegroup-petalinux-qt-extended-dev \
++                       packagegroup-petalinux-opencv \
++                       packagegroup-petalinux-gstreamer \
++                       packagegroup-petalinux-qt \
++                       packagegroup-petalinux-qt-extended \
 +						packagegroup-core-tools-debug \
 +						ffmpeg \
 +						file \
 +						ldd \
 +						xrt \
-+						xrt-dev \
++						xrt \
 +						zocl \
-+						zocl-dev \
++						zocl \
 +						opencl-clhpp-dev \
 +						opencl-headers-dev \
 +						"
++inherit populate_sdk_qt5
++TOOLCHAIN_HOST_TASK += "nativesdk-qtbase-dev"
 
 $ petalinux-build
+$ petalinux-build -s
 
 $ petalinux-package --force --boot --fsbl images/linux/zynqmp_fsbl.elf --u-boot images/linux/u-boot.elf --pmufw images/linux/pmufw.elf --fpga images/linux/system.bit
 
