@@ -175,8 +175,6 @@ $ vi project-spec/meta-user/recipes-core/images/petalinux-user-image.bbappend
 +						file \
 +						ldd \
 +						xrt \
-+						xrt \
-+						zocl \
 +						zocl \
 +						opencl-clhpp-dev \
 +						opencl-headers-dev \
