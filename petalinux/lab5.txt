@@ -1,0 +1,200 @@
+$ cd ~/work/petalinux/ultra96
+$ petalinux-config --silentconfig --get-hw-description=../../hw4/
+
+$ petalinux-build -c device-tree -x configure
+
+$ vi project-spec/meta-user/recipes-bsp/device-tree/files/system-user.dtsi
+-/ {
+-   zyxclm_drm {
+-       compatible = "xlnx,zocl";
+-   };
+-};
+-
+-&vadd_0 {
+-   compatible = "xlnx,generic-uio";
+-};
++
++&amba_pl {
++    pcam_clk: pcam_clk {
++        compatible = "fixed-clock";
++        #clock-cells = <0>;
++        clock-frequency = <12000000>;
++    };
++};
++
++&i2csw_1 {
++    ov5640: camera@3c {
++        compatible = "ovti,ov5640";
++        reg = <0x3c>;
++        clock-names = "xclk";
++        clocks = <&pcam_clk>;
++        powerdown-gpios = <&gpio 36 1>;
++        reset-gpios = <&gpio 39 1>;
++
++        port {
++            ov5640_out: endpoint {
++                remote-endpoint = <&csiss_in>;
++                clock-lanes = <0>;
++                data-lanes = <1 2>;
++            };
++        };
++    };
++};
++
++&mipi_csi2_rx_subsyst_0 {
++    compatible = "xlnx,mipi-csi2-rx-subsystem-4.0";
++    reset-gpios = <&gpio 78 1>;
++};
++
++&csiss_port0 {
++    /delete-property/ xlnx,cfa-pattern;
++    xlnx,video-format = <0>;
++};
++
++&csiss_port1 {
++    /delete-property/ xlnx,cfa-pattern;
++    xlnx,video-format = <0>;
++};
++
++&csiss_in {
++    data-lanes = <1 2>;
++    remote-endpoint =  <&ov5640_out>;
++};
++
++&v_frmbuf_wr_0 {
++    compatible = "xlnx,axi-frmbuf-wr-v2.1";
++};
+
+$ petalinux-build -c virtual/boot-bin
+
+$ petalinux-package --force --boot --fsbl images/linux/zynqmp_fsbl.elf --u-boot images/linux/u-boot.elf --pmufw images/linux/pmufw.elf --fpga images/linux/system.bit
+
+$ scp images/linux/{BOOT.BIN,image.ub} root@<your-target-ip>:/media/card
+
+<target board begin> // $ ssh root@<your-target-ip>
+$ reboot
+<target board end>
+
+<target board begin> // $ ssh root@<your-target-ip>
+$ i2cdetect -l
+i2c-3	i2c       	i2c-0-mux (chan_id 1)           	I2C adapter
+i2c-1	i2c       	ZynqMP DP AUX                   	I2C adapter
+i2c-8	i2c       	i2c-0-mux (chan_id 6)           	I2C adapter
+i2c-6	i2c       	i2c-0-mux (chan_id 4)           	I2C adapter
+i2c-4	i2c       	i2c-0-mux (chan_id 2)           	I2C adapter
+i2c-2	i2c       	i2c-0-mux (chan_id 0)           	I2C adapter
+i2c-0	i2c       	Cadence I2C at ff030000         	I2C adapter
+i2c-9	i2c       	i2c-0-mux (chan_id 7)           	I2C adapter
+i2c-7	i2c       	i2c-0-mux (chan_id 5)           	I2C adapter
+i2c-5	i2c       	i2c-0-mux (chan_id 3)           	I2C adapter
+
+$ i2cdetect -y -r 3 
+     0  1  2  3  4  5  6  7  8  9  a  b  c  d  e  f
+00:          -- -- -- -- -- -- -- -- -- -- -- -- -- 
+10: -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- 
+20: -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- 
+30: -- -- -- -- -- -- -- -- -- -- -- -- 3c -- -- -- 
+40: -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- 
+50: -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- 
+60: -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- 
+70: -- -- -- -- -- UU -- --             
+
+$ ls /dev/media* 
+/dev/media0
+
+$ media-ctl -d /dev/media0 -p
+Device topology
+- entity 1: vcap_mipi output 0 (1 pad, 1 link)
+            type Node subtype V4L flags 0
+            device node name /dev/video2
+	pad0: Sink
+		<- "80000000.mipi_csi2_rx_subsystem":0 [ENABLED]
+
+- entity 5: ov5640 3-003c (1 pad, 1 link)
+            type V4L2 subdev subtype Sensor flags 0
+            device node name /dev/v4l-subdev0
+	pad0: Source
+		[fmt:JPEG_1X8/640x480@1/30 field:none colorspace:jpeg xfer:srgb ycbcr:601 quantization:full-range]
+		-> "80000000.mipi_csi2_rx_subsystem":1 [ENABLED]
+
+- entity 7: 80000000.mipi_csi2_rx_subsystem (2 pads, 2 links)
+            type V4L2 subdev subtype Unknown flags 0
+            device node name /dev/v4l-subdev1
+	pad0: Source
+		[fmt:UYVY8_1X16/1920x1080 field:none colorspace:srgb]
+		-> "vcap_mipi output 0":0 [ENABLED]
+	pad1: Sink
+		[fmt:UYVY8_1X16/1920x1080 field:none colorspace:srgb]
+		<- "ov5640 3-003c":0 [ENABLED]
+
+$ media-ctl -d /dev/media0 -V '"ov5640 3-003c":0 [fmt:UYVY/1920x1080@1/30 field:none]'
+
+$ gst-launch-1.0 -v v4l2src device=/dev/video2 num-buffers=15 ! capsfilter caps='video/x-raw,width=1920,height=1080,format=YUY2' ! fpsdisplaysink video-sink='filesink location=/run/out.yuv'
+
+<target board end>
+
+$ scp root@<your-target-ip>:/run/out.yuv
+
+$ ffmpeg -f rawvideo -vcodec rawvideo -s 1920x1080 -r 15 -pix_fmt yuyv422 -i out.yuv -c:v libx264 -preset ultrafast -qp 0 output.mp4
+
+<target board begin> // $ ssh root@<your-target-ip>
+
+$ modetest -D fd4a0000.zynqmp-display
+Encoders:
+id	crtc	type	possible crtcs	possible clones	
+38	37	TMDS	0x00000001	0x00000000
+
+
+Connectors:
+id	encoder	status		name		size (mm)	modes	encoders
+39	38	connected	DP-1           	510x290		27	38
+
+  modes:
+	name refresh (Hz) hdisp hss hse htot vdisp vss vse vtot)
+  1920x1080 60 1920 2068 2112 2200 1080 1116 1121 1125 148500 flags: phsync, pvsync; type: preferred, driver
+
+CRTCs:
+id	fb	pos	size
+37	71	(0,0)	(1920x1080)
+  1920x1080 60 1920 2068 2112 2200 1080 1116 1121 1125 148500 flags: phsync, pvsync; type: preferred, driver
+  props:
+
+
+Planes:
+id	crtc	fb	CRTC x,y	x,y	gamma size	possible crtcs
+35	0	0	0,0		0,0	0       	0x00000001
+  formats: VYUY UYVY YUYV YVYU YU16 YV16 YU24 YV24 NV16 NV61 GREY Y10  BG24 RG24 XB24 XR24 XB30 XR30 YU12 YV12 NV12 NV21 XV15 XV20
+  props:
+	7 type:
+		flags: immutable enum
+		enums: Overlay=0 Primary=1 Cursor=2
+		value: 0
+
+
+36	37	71	0,0		0,0	0       	0x00000001
+  formats: AB24 AR24 RA24 BA24 BG24 RG24 RA15 BA15 RA12 BA12 RG16 BG16
+  props:
+	7 type:
+		flags: immutable enum
+		enums: Overlay=0 Primary=1 Cursor=2
+		value: 1
+
+	28 alpha:
+		flags: range
+		values: 0 255
+		value: 255
+	29 g_alpha_en:
+		flags: range
+		values: 0 1
+		value: 1
+
+
+
+$ modetest -D fd4a0000.zynqmp-display -s 39:1920x1080@RG16 -P 35@37:1920x1080@YUYV &
+$ modetest -D fd4a0000.zynqmp-display -w 36:g_alpha_en:0
+
+$ gst-launch-1.0 -v v4l2src device=/dev/video2 io-mode=dmabuf ! capsfilter caps=video/x-raw,width=1920,height=1080,format=YUY2 ! fpsdisplaysink fps-update-intervalvideo-sink=1000 signal-fps-measurements=true text-overlay=false sync=false video-sink='kmssink bus-id=fd4a0000.zynqmp-display'
+
+<target board end>
+
+

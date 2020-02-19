@@ -1,0 +1,84 @@
+$ cd ~/work/petalinux/ultra96
+$ petalinux-config --silentconfig --get-hw-description=../../hw3/
+
+$ petalinux-build -c device-tree -x configure
+
+$ vi project-spec/meta-user/recipes-bsp/device-tree/files/system-user.dtsi
+-/{
+-    pmod8ld {
+-        compatible = "inipro,pmod8ld";
+-        led-gpios = <&axi_gpio_0 0 0 0>, <&axi_gpio_0 1 0 0>,
+-                    <&axi_gpio_0 2 0 0>, <&axi_gpio_0 3 0 0>,
+-                    <&axi_gpio_0 4 0 0>, <&axi_gpio_0 5 0 0>,
+-                    <&axi_gpio_0 6 0 0>, <&axi_gpio_0 7 0 0>;
+-    };
+-};
+-
+-&axi_quad_spi_0{
+-   pmodals@0 {
+-       compatible = "inipro,pmodals";
+-      reg = <0>;
+-      spi-max-frequency = <50000000>;
+-      spi-cpha;
+-      spi-cpol;
+-   };
+-};
+-
+-&axi_iic_0 {
+-    pmodtmp2@4b {
+-        compatible = "inipro,pmodtmp2";
+-        reg = <0x4b>;
+-    };
+-};
++
++/ {
++	zyxclm_drm {
++		compatible = "xlnx,zocl";
++	};
++};
++
++&vadd_0 {
++	compatible = "xlnx,generic-uio";
++};
+
+$ petalinux-build -c virtual/boot-bin
+
+$ petalinux-package --force --boot --fsbl images/linux/zynqmp_fsbl.elf --u-boot images/linux/u-boot.elf --pmufw images/linux/pmufw.elf --fpga images/linux/system.bit
+
+$ scp images/linux/{BOOT.BIN,image.ub} root@<your-target-ip>:/media/card
+
+$ cd ~/work/zynqmp_linux/petalinux/workspaces
+$ unset LD_LIBRARY_PATH
+$ source ../sdk/environment-setup-aarch64-xilinx-linux
+$ cd vadd
+$ mkdir build
+$ cd build
+$ cmake ..
+$ make
+$ scp vadd root@<your-target-ip>:.
+
+<target board begin> // $ ssh root@<your-target-ip>
+$ ls /dev/dri/
+by-path  card0
+$ reboot
+<target board end>
+
+<target board begin> // $ ssh root@<your-target-ip>
+$ ls /dev/dri/
+by-path  card0  card1  renderD128
+$ cat /sys/class/uio/uio4/name
+vadd
+$ ./vadd
+TEST PASSED
+$ rm vadd
+<target board end>
+
+$ cd ~/work/zynqmp_linux/petalinux/ultra96
+$ petalinux-build -c vadd
+$ petalinux-build -c package-index
+
+<target board begin> // $ ssh root@<your-target-ip>
+$ dnf -y --refresh install vadd
+$ vadd
+TEST PASSED
+<target board end>

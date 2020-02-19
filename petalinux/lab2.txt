@@ -8,29 +8,21 @@ $ mkdir build
 $ cd build
 $ cmake ..
 $ make
-
-$ scp hello_world root@172.30.1.54:.
-
-$ ssh root@172.30.1.54
-
-<target board begin>
-# ./hello_world
-<target board end>
+$ scp hello_world root@<your-target-ip>:.
 
 $ cd ~/work/petalinux/workspaces/hello_qt
 $ mkdir build
 $ cd build
 $ cmake ..
 $ make
+$ scp hello_qt root@<your-target-ip>:.
 
-$ scp hello_qt root@172.30.1.54:.
-
-$ ssh root@172.30.1.54
-
-<target board begin>
+<target board begin> // $ ssh root@<your-target-ip>
+# ./hello_world
 $ ./hello_qt -platform linuxfb
 control-C
 $ cat /dev/zero > /dev/fb0
+$ rm
 <target board end>
 
 $ cd ~/work/petalinux/ultra96
@@ -49,11 +41,11 @@ $ cd build/tmp/deploy/rpm
 $ python3 -m http.server 5678
 
 
-<target board begin>
+<target board begin> // $ ssh root@<your-target-ip>
 $ vi /etc/yum.repos.d/oe-remote-repo.repo
 [oe-remote-repo]
 name=OE Remote Repo:
-baseurl=http://172.30.1.25:5678
+baseurl=http://<your-host-ip>:5678
 gpgcheck=0
 
 $ dnf -y --refresh install helloworld
@@ -62,11 +54,16 @@ $ rpm -ql helloworld
 /usr/bin
 /usr/bin/hello_world
 
+$ hello_world
+
 $ dnf -y --refresh install helloqt
 $ rpm -ql helloqt
 /usr
 /usr/bin
 /usr/bin/hello_qt
+
+$ hello_qt -platform linuxfb
+control-C
 
 $ dnf -y --refresh install autostart
 $ rpm -ql autostart
@@ -75,8 +72,26 @@ $ rpm -ql autostart
 /etc/init.d/autostart
 
 $ rpm -q --scripts autostart
+postinstall scriptlet (using /bin/sh):
+# autostart - postinst
+#!/bin/sh
+set -e
+if true && type update-rc.d >/dev/null 2>/dev/null; then
+	if [ -n "$D" ]; then
+		OPT="-f -r $D"
+	else
+		OPT="-f -s"
+	fi
+	update-rc.d $OPT autostart start 99 5 .
+fi
+
 
 $ ls /etc/rc5.d/*
+/etc/rc5.d/S99autostart
+
+$ ls -l /etc/rc5.d/S99autostart
+lrwxrwxrwx 1 root root 19 Feb 14 11:18 /etc/rc5.d/S99autostart -> ../init.d/autostart
 
 $ reboot
 <target board end>
+

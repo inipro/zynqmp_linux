@@ -1,0 +1,37 @@
+diff -urN old/xvadd.h new/xvadd.h
+--- old/xvadd.h	2020-02-19 09:02:19.717008830 +0900
++++ new/xvadd.h	2020-02-19 09:03:56.929259595 +0900
+@@ -34,15 +34,16 @@
+ typedef uint8_t u8;
+ typedef uint16_t u16;
+ typedef uint32_t u32;
++typedef uint64_t u64;
+ #else
+ typedef struct {
+     u16 DeviceId;
+-    u32 Control_BaseAddress;
++    u64 Control_BaseAddress;
+ } XVadd_Config;
+ #endif
+ 
+ typedef struct {
+-    u32 Control_BaseAddress;
++    u64 Control_BaseAddress;
+     u32 IsReady;
+ } XVadd;
+ 
+diff -urN old/xvadd_linux.c new/xvadd_linux.c
+--- old/xvadd_linux.c	2020-02-19 09:02:19.717008830 +0900
++++ new/xvadd_linux.c	2020-02-19 09:03:11.107262058 +0900
+@@ -15,8 +15,8 @@
+ 
+ /**************************** Type Definitions ******************************/
+ typedef struct {
+-    u32 addr;
+-    u32 size;
++    u64 addr;
++    u64 size;
+ } XVadd_uio_map;
+ 
+ typedef struct {
+

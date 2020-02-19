@@ -5,5 +5,13 @@ vivado.jou
 *#
 **/.Xil
 hw1/
+hw2/
+hw3/
+hw4/
 ip_cache/
 petalinux/ultra96
+petalinux/sdk
+petalinux/sdk.sh
+petalinux/ultra96v1-2019.2.bsp
+petalinux/ultra96v2-2019.2.bsp
+**/build

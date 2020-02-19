@@ -1,0 +1,314 @@
+$ cd ~/work/petalinux/ultra96
+$ petalinux-config --silentconfig --get-hw-description=../../hw2/
+
+$ petalinux-build -c device-tree -x configure
+
+$ petalinux-config -c kernel
+Device Drivers -> SPI support
+<*> User mode SPI device driver support ===> CONFIG_SPI_SPIDEV=y
+
+
+$ vi project-spec/meta-user/recipes-bsp/device-tree/files/system-user.dtsi 
+==================================ultra96v1=====================================
+/include/ "system-conf.dtsi"
+/ {
+};
++
++&axi_quad_spi_0{
++   spidev@0 {
++       compatible = "rohm,dh2228fv";
++       reg = <0>;
++       spi-max-frequency = <50000000>;
++   };
++};
+==================================ultra96v2=====================================
+&uart0 {
+	    /delete-node/ bluetooth;
+};
++
++&axi_quad_spi_0{
++	spidev@0 {
++		compatible = "rohm,dh2228fv";
++		reg = <0>; 
++		spi-max-frequency = <50000000>;
++ 	};
++};
+================================================================================
+
+$ petalinux-build -c virtual/boot-bin
+
+$ petalinux-package --force --boot --fsbl images/linux/zynqmp_fsbl.elf --u-boot images/linux/u-boot.elf --pmufw images/linux/pmufw.elf --fpga images/linux/system.bit
+
+$ scp images/linux/{BOOT.BIN,image.ub} root@<your-target-ip>:/media/card
+<target board begin> // $ ssh root@<your-target-ip>
+$ reboot
+<target board end>
+<target board begin> // $ ssh root@<your-target-ip>
+$ ls -l /sys/class/gpio/gpio*
+lrwxrwxrwx 1 root root 0 Feb 15 10:56 /sys/class/gpio/gpio356 -> ../../devices/platform/amba/ff0a0000.gpio/gpiochip1/gpio/gpio356
+lrwxrwxrwx 1 root root 0 Jan  1  1970 /sys/class/gpio/gpiochip330 -> ../../devices/platform/amba/ff0a0000.gpio/gpio/gpiochip330
+lrwxrwxrwx 1 root root 0 Jan  1  1970 /sys/class/gpio/gpiochip504 -> ../../devices/platform/amba_pl@0/80000000.gpio/gpio/gpiochip504
+
+$ cat /sys/class/gpio/gpiochip330/label
+zynqmp_gpio
+$ cat /sys/class/gpio/gpiochip504/label
+/amba_pl@0/gpio@80000000
+
+$ ls -l /sys/class/spi_master/spi*
+lrwxrwxrwx 1 root root 0 Jan  1  1970 /sys/class/spi_master/spi0 -> ../../devices/platform/amba_pl@0/80020000.axi_quad_spi/spi_master/spi0
+lrwxrwxrwx 1 root root 0 Jan  1  1970 /sys/class/spi_master/spi1 -> ../../devices/platform/amba/ff040000.spi/spi_master/spi1
+lrwxrwxrwx 1 root root 0 Jan  1  1970 /sys/class/spi_master/spi2 -> ../../devices/platform/amba/ff050000.spi/spi_master/spi2
+
+$ i2cdetect -l                    
+i2c-3	i2c       	i2c-1-mux (chan_id 0)           	I2C adapter
+i2c-10	i2c       	i2c-1-mux (chan_id 7)           	I2C adapter
+i2c-1	i2c       	Cadence I2C at ff030000         	I2C adapter
+i2c-8	i2c       	i2c-1-mux (chan_id 5)           	I2C adapter
+i2c-6	i2c       	i2c-1-mux (chan_id 3)           	I2C adapter
+i2c-4	i2c       	i2c-1-mux (chan_id 1)           	I2C adapter
+i2c-2	i2c       	ZynqMP DP AUX                   	I2C adapter
+i2c-0	i2c       	xiic-i2c                        	I2C adapter
+i2c-9	i2c       	i2c-1-mux (chan_id 6)           	I2C adapter
+i2c-7	i2c       	i2c-1-mux (chan_id 4)           	I2C adapter
+i2c-5	i2c       	i2c-1-mux (chan_id 2)           	I2C adapter
+
+$ i2cdetect -y -r 0
+     0  1  2  3  4  5  6  7  8  9  a  b  c  d  e  f
+	 00:          -- -- -- -- -- -- -- -- -- -- -- -- -- 
+	 10: -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- 
+	 20: -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- 
+	 30: -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- 
+	 40: -- -- -- -- -- -- -- -- -- -- -- 4b -- -- -- -- 
+	 50: -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- 
+	 60: -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- 
+	 70: -- -- -- -- -- -- -- --                         
+
+<target board end>
+
+$ cd ~/work/zynqmp_linux/petalinux/workspaces
+$ unset LD_LIBRARY_PATH
+$ source ../sdk/environment-setup-aarch64-xilinx-linux
+$ cd gpio_test
+$ mkdir build
+$ cd build
+$ cmake ..
+$ make
+$ scp gpio_test root@your-target-ip:.
+$ cd ../../spi_test
+$ mkdir build
+$ cd build
+$ cmake ..
+$ make
+$ scp spi_test root@your-target-ip:.
+$ cd ../../i2c_test
+$ mkdir build
+$ cd build
+$ cmake ..
+$ make
+$ scp i2c_test root@your-target-ip:.
+
+<target board begin> // $ ssh root@<your-target-ip>
+$ cd ~
+$ ./gpio_test 3
+$ ./spi_test
+light = 44
+$ ./i2c_test
+temp = 3176
+$ rm gpio_test spi_test i2c_test
+<target board end>
+
+$ vi project-spec/meta-user/recipes-bsp/device-tree/files/system-user.dtsi
+-&axi_quad_spi_0{
+-   spidev@0 {
+-       compatible = "rohm,dh2228fv";
+-       reg = <0>;
+-       spi-max-frequency = <50000000>;
+-   };
+-};
++
++/{
++    pmod8ld {
++        compatible = "inipro,pmod8ld";
++        led-gpios = <&axi_gpio_0 0 0 0>, <&axi_gpio_0 1 0 0>,
++                    <&axi_gpio_0 2 0 0>, <&axi_gpio_0 3 0 0>,
++                    <&axi_gpio_0 4 0 0>, <&axi_gpio_0 5 0 0>,
++                    <&axi_gpio_0 6 0 0>, <&axi_gpio_0 7 0 0>;
++    };
++};
++
++&axi_quad_spi_0{
++   pmodals@0 {
++       compatible = "inipro,pmodals";
++	   reg = <0>;
++	   spi-max-frequency = <50000000>;
++	   spi-cpha;
++	   spi-cpol;
++   };
++};
++
++&axi_iic_0 {
++    pmodtmp2@4b {
++        compatible = "inipro,pmodtmp2";
++        reg = <0x4b>;
++    };
++};
+
+$ petalinux-build -c device-tree
+
+$ scp images/linux/image.ub root@<your-target-ip>:/media/card
+
+$ cd ~/work/zynqmp_linux/petalinux/sdk
+$ unset LD_LIBRARY_PATH
+$ source environment-setup-aarch64-xilinx-linux
+$ cd sysroots/aarch64-xilinx-linux/usr/src/kernel
+$ make modules_prepare
+$ cd ~/work/zynqmp_linux/petalinux/workspaces
+$ cd pmod8ld
+$ KERNEL_SRC=$SDKTARGETSYSROOT/usr/src/kernel make
+$ scp pmod8ld.ko root@<your-target-ip>:/lib/modules/4.19.0-xilinx-v2019.2/extra
+$ make clean
+$ cd ../pmodals
+$ KERNEL_SRC=$SDKTARGETSYSROOT/usr/src/kernel make
+$ scp pmodals.ko root@<your-target-ip>:/lib/modules/4.19.0-xilinx-v2019.2/extra
+$ make clean
+$ cd ../pmodtmp2
+$ KERNEL_SRC=$SDKTARGETSYSROOT/usr/src/kernel make
+$ scp pmodtmp2.ko root@<your-target-ip>:/lib/modules/4.19.0-xilinx-v2019.2/extra
+$ make clean
+
+<target board begin> // $ ssh root@<your-target-ip>
+$ depmod -a
+$vi /etc/modules-load.d/pmod8ld.conf
++pmod8ld
+$vi /etc/modules-load.d/pmodals.conf
++pmodals
+$vi /etc/modules-load.d/pmodtmp2.conf
++pmodtmp2
+$ reboot
+<target board end>
+
+<target board begin> // $ ssh root@<your-target-ip>
+$ cd /sys/devices/platform/pmod8ld
+$ cat bits
+0
+$ echo 10 > bits
+$ cat bits
+10
+
+$ cd /sys/class/spi_master/spi0/spi0.0
+$ cat adc
+42
+$ cd /sys/class/i2c-adapter/i2c-0/0-004b
+$ cat adc
+3144
+$ rm  /etc/modules-load.d/pmod*.conf
+$ rm /lib/modules/4.19.0-xilinx-v2019.2/extra/pmod*.ko
+$ depmod -a
+<target board end>
+
+$ cd ~/work/zynqmp_linux/petalinux/ultra96
+$ petalinux-build -c pmod8ld
+$ petalinux-build -c pmodals
+$ petalinux-build -c pmodtmp2
+$ petalinux-build -c package-index
+
+<target board begin> // $ ssh root@<your-target-ip>
+$ dnf -y --refresh kernel-module-pmod8ld kernel-module-pmodals kernel-module-pmodtmp2
+$ reboot
+<target board end>
+<target board begin> // $ ssh root@<your-target-ip>
+$ cd /sys/devices/platform/pmod8ld
+$ cat bits
+0
+$ echo 10 > bits
+$ cat bits
+10
+
+$ cd /sys/class/spi_master/spi0/spi0.0
+$ cat adc
+42
+$ cd /sys/class/i2c-adapter/i2c-0/0-004b
+$ cat adc
+3144
+$ dnf -y --refresh kernel-module-pmodtmp2
+<target board end>
+
+$ petalinux-config
+Yocto Settings -> Build tool
+(X) devtool
+Exit
+
+$ petalinux-build -c kernel -x modify
+$ cd ~/work/zynqmp_linux/petalinux/ultra96/components/plnx_workspace/sources/linux-xlnx
+$ mkdir drivers/staging/pmods
+$ vi drivers/staging/pmods/Kconfig
++menuconfig PMODS
++	bool "Pmod Support"
++	depends on HAS_IOMEM
++	help
++		Digilent PMOD Support
++
++if PMODS
++
++	config PMODS_DEBUG
++	bool "Enable Debug Message"
++
++	config PMODTMP2
++	tristate "pmodtmp2"
++	depends on I2C
++	help
++		This is the Digilent PmodTMP2 driver.
++
++
++endif # PMODS
+
+$ vi drivers/staging/pmods/Makefile
++ccflags-$(CONFIG_PMODS_DEBUG)  += -DDEBUG
++
++obj-$(CONFIG_PMODTMP2) += pmodtmp2.o
+
+$ vi drivers/staging/Kconfig
+source "drivers/staging/xlnxsync/Kconfig"
+
+source "drivers/staging/xlnx_tsmux/Kconfig"
++
++source "drivers/staging/pmods/Kconfig"
+
+$ vi drivers/staging/Makefile
+obj-$(CONFIG_XLNX_SYNC)     += xlnxsync/
+obj-$(CONFIG_XLNX_TSMUX)    += xlnx_tsmux/
++obj-$(CONFIG_PMODS) += pmods/
+
+$ cp ~/work/zynqmp_linux/petalinux/workspaces/pmodtmp2/pmodtmp2.c drivers/staging/pmods/
+
+$ cd ~/work/zynqmp_linux/petalinux/ultra96
+$ petalinux-config -c kernel
+Device Drivers -> Staging drivers
+[*] Pmod Support ===> CONFIG_PMODS=y
+Device Drivers -> Staging drivers -> Pmod Support
+<*> pmodtmp2
+
+$ petalinux-build -c kernel
+
+$ scp images/linux/image.ub root@<your-target-ip>:/media/card
+<target board begin> // $ ssh root@<your-target-ip>
+$ reboot
+<target board end>
+<target board begin> // $ ssh root@<your-target-ip>
+$ cd /sys/class/i2c-adapter/i2c-0/0-004b
+$ cat adc
+3144
+<target board end>
+
+$ cd ~/work/zynqmp_linux/petalinux/ultra96/components/plnx_workspace/sources/linux-xlnx
+$ git add .
+$ git commit -s -m "Add pmodtmp2"
+$ git format-patch -1
+$ petalinux-build -c kernel -x update-recipe
+
+$ petalinux-config
+Yocto Settings -> Build tool
+(X) bitbake
+Exit
+
+$ petalinux-build -c kernel -x reset

@@ -35,6 +35,7 @@ Yocto Settings -> User Layers
     ${PROOT}/../meta-inipro
 
 $ vi project-spec/meta-user/conf/petalinuxbsp.conf
+==================================ultra96v1=====================================
 EXTRA_IMAGEDEPENDS_remove = "qemu-helper-native virtual/boot-bin"
 +
 +MACHINE_FEATURES_remove = "mipi"
@@ -49,17 +50,37 @@ EXTRA_IMAGEDEPENDS_remove = "qemu-helper-native virtual/boot-bin"
 +
 +SIGGEN_UNLOCKED_RECIPES += "tzdata dnf-native dropbear dtc-native cmake-native"
 +
-+PREFERRED_VERSION_wilc-firmware = "15.2" <--- for ultra96v2
++SSTATE_MIRRORS_append = "  \
++file://.* file:///media/hokim/data/sstate_aarch64_2019.2_2/PATH \n \
++"
+==================================ultra96v2=====================================
+EXTRA_IMAGEDEPENDS_remove = "qemu-helper-native virtual/boot-bin"
 +
-+ULTRA96_VERSION_ultra96-zynqmp = "2"  <--- for ultra96v2
++MACHINE_FEATURES_remove = "mipi"
++
++DISTRO_FEATURES_append = " bluez5 dbus"
++
++EXTRA_IMAGE_FEATURES += "package-management"
++
++PACKAGE_FEED_URIS = "http://192.168.2.50:5678"
++
++IMAGE_ROOTFS_EXTRA_SPACE = "102400"
++
++SIGGEN_UNLOCKED_RECIPES += "tzdata dnf-native dropbear dtc-native cmake-native"
++
++PREFERRED_VERSION_wilc-firmware = "15.2" 
++
++ULTRA96_VERSION_ultra96-zynqmp = "2"
 +
 +SSTATE_MIRRORS_append = "  \
 +file://.* file:///media/hokim/data/sstate_aarch64_2019.2_2/PATH \n \
 +"
-
+================================================================================
 $ petalinux-build -c device-tree -x configure
 
-$ vi project-spec/meta-user/recipes-bsp/device-tree/files/system-user.dtsi <--- for ultra96v2
+$ vi project-spec/meta-user/recipes-bsp/device-tree/files/system-user.dtsi
+==================================ultra96v1=====================================
+==================================ultra96v2=====================================
 /include/ "system-conf.dtsi"
 / {
 +    /delete-node/ ltc2954;
@@ -107,6 +128,7 @@ $ vi project-spec/meta-user/recipes-bsp/device-tree/files/system-user.dtsi <--- 
 +&uart0 {
 +    /delete-node/ bluetooth;
 +};
+================================================================================
 
 $ vi project-spec/meta-user/recipes-bsp/u-boot/files/platform-top.h
 #ifdef CONFIG_DEBUG_UART
@@ -140,10 +162,13 @@ Device Drivers -> Multimedia support -> Media test drivers
 $ petalinux-config
 Yocto Settings -> Build tool
 (X) devtool
+Exit
 $ petalinux-build -c kernel -x update-recipe
 $ petalinux-config
 Yocto Settings -> Build tool
 (X) bitbake
+Exit
+$ petalinux-build -c kernel -x reset
 
 $ mkdir -p project-spec/meta-user/recipes-core/images
 $ vi project-spec/meta-user/recipes-core/images/petalinux-user-image.bbappend
@@ -178,12 +203,13 @@ $ vi project-spec/meta-user/recipes-core/images/petalinux-user-image.bbappend
 +						zocl \
 +						opencl-clhpp-dev \
 +						opencl-headers-dev \
++						vai-staticdev \
++						xrtutils \
 +						"
 +inherit populate_sdk_qt5
 +TOOLCHAIN_HOST_TASK += "nativesdk-qtbase-dev"
 
 $ petalinux-build
-$ petalinux-build -s
 
 $ petalinux-package --force --boot --fsbl images/linux/zynqmp_fsbl.elf --u-boot images/linux/u-boot.elf --pmufw images/linux/pmufw.elf --fpga images/linux/system.bit
 
@@ -218,3 +244,21 @@ $ sudo mkfs.ext4 -L root /dev/mmcblk0p2
 $ cp images/linux/{BOOT.BIN,image.ub} /media/hokim/card/
 $ sudo tar xvzf images/linux/rootfs.tar.gz -C /media/hokim/root/
 $ sync
+
+$ cd ~/work/zynqmp_linux/petalinux/ultra96
+$ petalinux-build -s
+$ cp images/linux/sdk.sh ..
+
+$ mkdir pre-built
+$ cp images/linux/BOOT.BIN pre-built/
+$ cp images/linux/image.ub pre-built/
+$ cp images/linux/rootfs.tar.gz pre-built/
+$ petalinux-build -x mrproper
+$ cd ..
+==================================ultra96v1=====================================
+$ petalinux-package --bsp -p ultra96 --output ultra96v1-2019.2.bsp
+==================================ultra96v2=====================================
+$ petalinux-package --bsp -p ultra96 --output ultra96v2-2019.2.bsp
+================================================================================
+$ rm -fr ultra96
+$ petalinux-create -t project -s ultra96v2-2019.2.bsp
