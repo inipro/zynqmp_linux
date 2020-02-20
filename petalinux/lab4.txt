@@ -76,6 +76,8 @@ $ rm vadd
 $ cd ~/work/zynqmp_linux/petalinux/ultra96
 $ petalinux-build -c vadd
 $ petalinux-build -c package-index
+$ cd build/tmp/deploy/rpm
+$ python3 -m http.server 5678
 
 <target board begin> // $ ssh root@<your-target-ip>
 $ dnf -y --refresh install vadd

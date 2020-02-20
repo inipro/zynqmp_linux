@@ -221,6 +221,8 @@ $ petalinux-build -c pmod8ld
 $ petalinux-build -c pmodals
 $ petalinux-build -c pmodtmp2
 $ petalinux-build -c package-index
+$ cd build/tmp/deploy/rpm
+$ python3 -m http.server 5678
 
 <target board begin> // $ ssh root@<your-target-ip>
 $ dnf -y --refresh kernel-module-pmod8ld kernel-module-pmodals kernel-module-pmodtmp2

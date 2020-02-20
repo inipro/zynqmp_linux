@@ -33,6 +33,7 @@ Yocto Settings -> Local sstate feeds settings
 
 Yocto Settings -> User Layers
     ${PROOT}/../meta-inipro
+Exit
 
 $ vi project-spec/meta-user/conf/petalinuxbsp.conf
 ==================================ultra96v1=====================================
@@ -208,6 +209,8 @@ $ vi project-spec/meta-user/recipes-core/images/petalinux-user-image.bbappend
 +						"
 +inherit populate_sdk_qt5
 +TOOLCHAIN_HOST_TASK += "nativesdk-qtbase-dev"
++TOOLCHAIN_TARGET_TASK += "kernel-devsrc"
+
 
 $ petalinux-build
 
@@ -260,5 +263,10 @@ $ petalinux-package --bsp -p ultra96 --output ultra96v1-2019.2.bsp
 ==================================ultra96v2=====================================
 $ petalinux-package --bsp -p ultra96 --output ultra96v2-2019.2.bsp
 ================================================================================
+
 $ rm -fr ultra96
+==================================ultra96v1=====================================
+$ petalinux-create -t project -s ultra96v1-2019.2.bsp
+==================================ultra96v2=====================================
 $ petalinux-create -t project -s ultra96v2-2019.2.bsp
+================================================================================

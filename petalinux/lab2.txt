@@ -1,16 +1,17 @@
 $ cd ~/work/ultra96/petalinux
 $ ./ultra96/images/linux/sdk.sh -y -d sdk
 
+$ unset LD_LIBRARY_PATH
 $ source sdk/environment-setup-aarch64-xilinx-linux
 
-$ cd ~/work/petalinux/workspaces/hello_world
+$ cd ~/work/zynqmp_linux/petalinux/workspaces/hello_world
 $ mkdir build
 $ cd build
 $ cmake ..
 $ make
 $ scp hello_world root@<your-target-ip>:.
 
-$ cd ~/work/petalinux/workspaces/hello_qt
+$ cd ~/work/zynqmp_linux/petalinux/workspaces/hello_qt
 $ mkdir build
 $ cd build
 $ cmake ..
@@ -22,10 +23,10 @@ $ scp hello_qt root@<your-target-ip>:.
 $ ./hello_qt -platform linuxfb
 control-C
 $ cat /dev/zero > /dev/fb0
-$ rm
+$ rm hello_world hello_qt
 <target board end>
 
-$ cd ~/work/petalinux/ultra96
+$ cd ~/work/zynqmp_linu/petalinux/ultra96
 $ petalinux-config
 Yocto Settings -> User Layers
     ${PROOT}/../meta-inipro
