@@ -1,8 +1,8 @@
-$ cd ~/work/ultra96/petalinux
-$ ./ultra96/images/linux/sdk.sh -y -d sdk
+$ cd ~/work/zynqmp_linux/petalinux/
+$ ./sdk.sh -y -d ~/sdk
 
 $ unset LD_LIBRARY_PATH
-$ source sdk/environment-setup-aarch64-xilinx-linux
+$ source ~/sdk/environment-setup-aarch64-xilinx-linux
 
 $ cd ~/work/zynqmp_linux/petalinux/workspaces/hello_world
 $ mkdir build
@@ -31,6 +31,7 @@ $ petalinux-config
 Yocto Settings -> User Layers
     ${PROOT}/../meta-inipro
     ${PROOT}/../meta-custom
+Exit
 
 $ petalinux-build -c helloworld
 $ petalinux-build -c helloqt

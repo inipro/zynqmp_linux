@@ -97,7 +97,7 @@ $ i2cdetect -y -r 0
 
 $ cd ~/work/zynqmp_linux/petalinux/workspaces
 $ unset LD_LIBRARY_PATH
-$ source ../sdk/environment-setup-aarch64-xilinx-linux
+$ source ~/sdk/environment-setup-aarch64-xilinx-linux
 $ cd gpio_test
 $ mkdir build
 $ cd build
@@ -189,7 +189,7 @@ $ petalinux-build -c device-tree
 
 $ scp images/linux/image.ub root@<your-target-ip>:/media/card
 
-$ cd ~/work/zynqmp_linux/petalinux/sdk
+$ cd ~/sdk
 $ unset LD_LIBRARY_PATH
 $ source environment-setup-aarch64-xilinx-linux
 $ cd sysroots/aarch64-xilinx-linux/usr/src/kernel

@@ -49,7 +49,7 @@ $ scp images/linux/{BOOT.BIN,image.ub} root@<your-target-ip>:/media/card
 
 $ cd ~/work/zynqmp_linux/petalinux/workspaces
 $ unset LD_LIBRARY_PATH
-$ source ../sdk/environment-setup-aarch64-xilinx-linux
+$ source ~/sdk/environment-setup-aarch64-xilinx-linux
 $ cd vadd
 $ mkdir build
 $ cd build
