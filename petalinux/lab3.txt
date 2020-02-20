@@ -122,11 +122,33 @@ $ cd ~
 $ ./gpio_test 3
 $ ./spi_test
 light = 44
+control-C
 $ ./i2c_test
 temp = 3176
+control-C
 $ rm gpio_test spi_test i2c_test
 <target board end>
 
+$ cd ~/work/zynqmp_linux/petalinux/ultra96
+$ petalinux-build -c gpiotest
+$ petalinux-build -c spitest
+$ petalinux-build -c i2ctest
+$ petalinux-build -c package-index
+$ cd build/tmp/deploy/rpm
+$ python3 -m http.server 5678
+
+<target board begin> // $ ssh root@<your-target-ip>
+$ dnf -y --refresh install gpiotest spitest i2ctest
+$ gpio_test 5
+$ spi_test
+light = 44
+control-C
+$ i2c_test
+temp = 3176
+control-C
+<target board end>
+
+$ cd ~/work/zynqmp_linux/petalinux/ultra96
 $ vi project-spec/meta-user/recipes-bsp/device-tree/files/system-user.dtsi
 -&axi_quad_spi_0{
 -   spidev@0 {
@@ -225,7 +247,34 @@ $ cd build/tmp/deploy/rpm
 $ python3 -m http.server 5678
 
 <target board begin> // $ ssh root@<your-target-ip>
-$ dnf -y --refresh kernel-module-pmod8ld kernel-module-pmodals kernel-module-pmodtmp2
+$ dnf -y --refresh install kernel-module-pmod8ld kernel-module-pmodals kernel-module-pmodtmp2
+$ rpm -ql kernel-module-pmod8ld-4.19.0-xilinx-v2019.2
+/etc
+/etc/modules-load.d
+/etc/modules-load.d/pmod8ld.conf
+/lib
+/lib/modules
+/lib/modules/4.19.0-xilinx-v2019.2
+/lib/modules/4.19.0-xilinx-v2019.2/extra
+/lib/modules/4.19.0-xilinx-v2019.2/extra/pmod8ld.ko
+$ rpm -ql kernel-module-pmodals-4.19.0-xilinx-v2019.2
+/etc
+/etc/modules-load.d
+/etc/modules-load.d/pmodals.conf
+/lib
+/lib/modules
+/lib/modules/4.19.0-xilinx-v2019.2
+/lib/modules/4.19.0-xilinx-v2019.2/extra
+/lib/modules/4.19.0-xilinx-v2019.2/extra/pmodals.ko
+$ rpm -ql kernel-module-pmodtmp2-4.19.0-xilinx-v2019.2
+/etc
+/etc/modules-load.d
+/etc/modules-load.d/pmodtmp2.conf
+/lib
+/lib/modules
+/lib/modules/4.19.0-xilinx-v2019.2
+/lib/modules/4.19.0-xilinx-v2019.2/extra
+/lib/modules/4.19.0-xilinx-v2019.2/extra/pmodtmp2.ko
 $ reboot
 <target board end>
 <target board begin> // $ ssh root@<your-target-ip>
@@ -242,9 +291,11 @@ $ cat adc
 $ cd /sys/class/i2c-adapter/i2c-0/0-004b
 $ cat adc
 3144
-$ dnf -y --refresh kernel-module-pmodtmp2
+$ dnf -y --refresh remove kernel-module-pmodtmp2
 <target board end>
 
+$ cd ~/work/zynqmp_linux/petalinux/ultra96
+$ petalinux-build -c kernel -x configure
 $ petalinux-config
 Yocto Settings -> Build tool
 (X) devtool
@@ -286,6 +337,8 @@ source "drivers/staging/xlnx_tsmux/Kconfig"
 +
 +source "drivers/staging/pmods/Kconfig"
 
+endif # STAGING
+
 $ vi drivers/staging/Makefile
 obj-$(CONFIG_XLNX_SYNC)     += xlnxsync/
 obj-$(CONFIG_XLNX_TSMUX)    += xlnx_tsmux/
@@ -316,11 +369,11 @@ $ cd ~/work/zynqmp_linux/petalinux/ultra96/components/plnx_workspace/sources/lin
 $ git add .
 $ git commit -s -m "Add pmodtmp2"
 $ git format-patch -1
-$ petalinux-build -c kernel -x update-recipe
 
+$ cd ~/work/zynqmp_linux/petalinux/ultra96
+$ petalinux-build -c kernel -x update-recipe 
 $ petalinux-config
 Yocto Settings -> Build tool
 (X) bitbake
 Exit
-
 $ petalinux-build -c kernel -x reset

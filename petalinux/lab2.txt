@@ -26,7 +26,7 @@ $ cat /dev/zero > /dev/fb0
 $ rm hello_world hello_qt
 <target board end>
 
-$ cd ~/work/zynqmp_linu/petalinux/ultra96
+$ cd ~/work/zynqmp_linux/petalinux/ultra96
 $ petalinux-config
 Yocto Settings -> User Layers
     ${PROOT}/../meta-inipro
@@ -46,7 +46,8 @@ $ python3 -m http.server 5678
 $ vi /etc/yum.repos.d/oe-remote-repo.repo
 [oe-remote-repo]
 name=OE Remote Repo:
-baseurl=http://<your-host-ip>:5678
+-baseurl=http://192.168.2.50:5678
++baseurl=http://<your-host-ip>:5678
 gpgcheck=0
 
 $ dnf -y --refresh install helloworld

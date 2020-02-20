@@ -133,7 +133,7 @@ $ gst-launch-1.0 -v v4l2src device=/dev/video2 num-buffers=15 ! capsfilter caps=
 
 <target board end>
 
-$ scp root@<your-target-ip>:/run/out.yuv
+$ scp root@<your-target-ip>:/run/out.yuv .
 
 $ ffmpeg -f rawvideo -vcodec rawvideo -s 1920x1080 -r 15 -pix_fmt yuyv422 -i out.yuv -c:v libx264 -preset ultrafast -qp 0 output.mp4
 
@@ -189,9 +189,8 @@ id	crtc	fb	CRTC x,y	x,y	gamma size	possible crtcs
 		value: 1
 
 
-
-$ modetest -D fd4a0000.zynqmp-display -s 39:1920x1080@RG16 -P 35@37:1920x1080@YUYV &
 $ modetest -D fd4a0000.zynqmp-display -w 36:g_alpha_en:0
+
 
 $ gst-launch-1.0 -v v4l2src device=/dev/video2 io-mode=dmabuf ! capsfilter caps=video/x-raw,width=1920,height=1080,format=YUY2 ! fpsdisplaysink fps-update-intervalvideo-sink=1000 signal-fps-measurements=true text-overlay=false sync=false video-sink='kmssink bus-id=fd4a0000.zynqmp-display'
 

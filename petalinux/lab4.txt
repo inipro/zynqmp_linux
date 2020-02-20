@@ -68,6 +68,12 @@ $ ls /dev/dri/
 by-path  card0  card1  renderD128
 $ cat /sys/class/uio/uio4/name
 vadd
+$ ls /dev/uio4
+/dev/uio4
+$ cat /sys/class/uio/uio4/maps/map0/addr
+0x0000000080000000
+$cat /sys/class/uio/uio4/maps/map0/size
+0x0000000000010000
 $ ./vadd
 TEST PASSED
 $ rm vadd
