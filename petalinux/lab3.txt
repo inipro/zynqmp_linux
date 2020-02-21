@@ -55,14 +55,30 @@ $ reboot
 <target board end>
 <target board begin> // $ ssh root@<your-target-ip>
 $ ls -l /sys/class/gpio/gpio*
+==================================ultra96v1=====================================
+lrwxrwxrwx 1 root root 0 Feb 19 19:49 /sys/class/gpio/gpio356 -> ../../devices/platform/amba/ff0a0000.gpio/gpiochip1/gpio/gpio356
+lrwxrwxrwx 1 root root 0 Feb 19 19:49 /sys/class/gpio/gpiochip326 -> ../../devices/platform/amba/ff030000.i2c/i2c-1/i2c-7/7-005e/gpio/gpiochip326
+lrwxrwxrwx 1 root root 0 Feb 19 19:49 /sys/class/gpio/gpiochip330 -> ../../devices/platform/amba/ff0a0000.gpio/gpio/gpiochip330
+lrwxrwxrwx 1 root root 0 Feb 19 19:49 /sys/class/gpio/gpiochip504 -> ../../devices/platform/amba_pl@0/80000000.gpio/gpio/gpiochip504
+==================================ultra96v2=====================================
 lrwxrwxrwx 1 root root 0 Feb 15 10:56 /sys/class/gpio/gpio356 -> ../../devices/platform/amba/ff0a0000.gpio/gpiochip1/gpio/gpio356
 lrwxrwxrwx 1 root root 0 Jan  1  1970 /sys/class/gpio/gpiochip330 -> ../../devices/platform/amba/ff0a0000.gpio/gpio/gpiochip330
 lrwxrwxrwx 1 root root 0 Jan  1  1970 /sys/class/gpio/gpiochip504 -> ../../devices/platform/amba_pl@0/80000000.gpio/gpio/gpiochip504
+================================================================================
 
+==================================ultra96v1=====================================
+$ cat /sys/class/gpio/gpiochip326/label
+tps65086-gpio
 $ cat /sys/class/gpio/gpiochip330/label
 zynqmp_gpio
 $ cat /sys/class/gpio/gpiochip504/label
 /amba_pl@0/gpio@80000000
+==================================ultra96v2=====================================
+$ cat /sys/class/gpio/gpiochip330/label
+zynqmp_gpio
+$ cat /sys/class/gpio/gpiochip504/label
+/amba_pl@0/gpio@80000000
+================================================================================
 
 $ ls -l /sys/class/spi_master/spi*
 lrwxrwxrwx 1 root root 0 Jan  1  1970 /sys/class/spi_master/spi0 -> ../../devices/platform/amba_pl@0/80020000.axi_quad_spi/spi_master/spi0
@@ -103,19 +119,19 @@ $ mkdir build
 $ cd build
 $ cmake ..
 $ make
-$ scp gpio_test root@your-target-ip:.
+$ scp gpio_test root@<your-target-ip>:.
 $ cd ../../spi_test
 $ mkdir build
 $ cd build
 $ cmake ..
 $ make
-$ scp spi_test root@your-target-ip:.
+$ scp spi_test root@<your-target-ip>:.
 $ cd ../../i2c_test
 $ mkdir build
 $ cd build
 $ cmake ..
 $ make
-$ scp i2c_test root@your-target-ip:.
+$ scp i2c_test root@<your-target-ip>:.
 
 <target board begin> // $ ssh root@<your-target-ip>
 $ cd ~
