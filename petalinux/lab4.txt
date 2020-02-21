@@ -1,4 +1,4 @@
-$ cd ~/work/petalinux/ultra96
+$ cd ~/work/zynqmp_linux/petalinux/ultra96
 $ petalinux-config --silentconfig --get-hw-description=../../hw3/
 
 $ petalinux-build -c device-tree -x configure
@@ -60,19 +60,26 @@ $ scp vadd root@<your-target-ip>:.
 <target board begin> // $ ssh root@<your-target-ip>
 $ ls /dev/dri/
 by-path  card0
+$ ls -l /sys/class/drm/card*
+lrwxrwxrwx 1 root root    0 Feb 18 07:33 card0 -> ../../devices/platform/amba/fd4a0000.zynqmp-display/drm/card0
+lrwxrwxrwx 1 root root    0 Feb 18 07:33 card0-DP-1 -> ../../devices/platform/amba/fd4a0000.zynqmp-display/drm/card0/card0-DP-1
 $ reboot
 <target board end>
 
 <target board begin> // $ ssh root@<your-target-ip>
 $ ls /dev/dri/
 by-path  card0  card1  renderD128
+$ ls -l /sys/class/drm/card*
+lrwxrwxrwx 1 root root 0 Feb 18 07:59 /sys/class/drm/card0 -> ../../devices/platform/amba/fd4a0000.zynqmp-display/drm/card0
+lrwxrwxrwx 1 root root 0 Feb 18 07:59 /sys/class/drm/card0-DP-1 -> ../../devices/platform/amba/fd4a0000.zynqmp-display/drm/card0/card0-DP-1
+lrwxrwxrwx 1 root root 0 Feb 18 08:00 /sys/class/drm/card1 -> ../../devices/platform/zyxclm_drm/drm/card1
 $ cat /sys/class/uio/uio4/name
 vadd
 $ ls /dev/uio4
 /dev/uio4
 $ cat /sys/class/uio/uio4/maps/map0/addr
 0x0000000080000000
-$cat /sys/class/uio/uio4/maps/map0/size
+$ cat /sys/class/uio/uio4/maps/map0/size
 0x0000000000010000
 $ ./vadd
 TEST PASSED

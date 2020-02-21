@@ -1,4 +1,4 @@
-$ cd ~/work/petalinux/ultra96
+$ cd ~/work/zynqmp_linux/petalinux/ultra96
 $ petalinux-config --silentconfig --get-hw-description=../../hw4/
 
 $ petalinux-build -c device-tree -x configure
@@ -128,6 +128,15 @@ Device topology
 		<- "ov5640 3-003c":0 [ENABLED]
 
 $ media-ctl -d /dev/media0 -V '"ov5640 3-003c":0 [fmt:UYVY/1920x1080@1/30 field:none]'
+
+$ media-ctl -d /dev/media0 -p
+- entity 5: ov5640 3-003c (1 pad, 1 link)
+            type V4L2 subdev subtype Sensor flags 0
+            device node name /dev/v4l-subdev0
+	pad0: Source
+		[fmt:UYVY8_1X16/1920x1080@1/30 field:none colorspace:srgb xfer:srgb ycbcr:601 quantization:full-range]
+		-> "80000000.mipi_csi2_rx_subsystem":1 [ENABLED]
+
 
 $ gst-launch-1.0 -v v4l2src device=/dev/video2 num-buffers=15 ! capsfilter caps='video/x-raw,width=1920,height=1080,format=YUY2' ! fpsdisplaysink video-sink='filesink location=/run/out.yuv'
 

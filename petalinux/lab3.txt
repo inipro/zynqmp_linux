@@ -1,4 +1,4 @@
-$ cd ~/work/petalinux/ultra96
+$ cd ~/work/zynqmp_linux/petalinux/ultra96
 $ petalinux-config --silentconfig --get-hw-description=../../hw2/
 
 $ petalinux-build -c device-tree -x configure
@@ -210,11 +210,11 @@ $ make clean
 
 <target board begin> // $ ssh root@<your-target-ip>
 $ depmod -a
-$vi /etc/modules-load.d/pmod8ld.conf
+$ vi /etc/modules-load.d/pmod8ld.conf
 +pmod8ld
-$vi /etc/modules-load.d/pmodals.conf
+$ vi /etc/modules-load.d/pmodals.conf
 +pmodals
-$vi /etc/modules-load.d/pmodtmp2.conf
+$ vi /etc/modules-load.d/pmodtmp2.conf
 +pmodtmp2
 $ reboot
 <target board end>
