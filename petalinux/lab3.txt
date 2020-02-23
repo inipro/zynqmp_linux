@@ -85,6 +85,10 @@ lrwxrwxrwx 1 root root 0 Jan  1  1970 /sys/class/spi_master/spi0 -> ../../device
 lrwxrwxrwx 1 root root 0 Jan  1  1970 /sys/class/spi_master/spi1 -> ../../devices/platform/amba/ff040000.spi/spi_master/spi1
 lrwxrwxrwx 1 root root 0 Jan  1  1970 /sys/class/spi_master/spi2 -> ../../devices/platform/amba/ff050000.spi/spi_master/spi2
 
+$ ls /sys/class/spi_master/spi0/    
+device  of_node  power  spi0.0  statistics  subsystem  uevent
+
+
 $ i2cdetect -l                    
 i2c-3	i2c       	i2c-1-mux (chan_id 0)           	I2C adapter
 i2c-10	i2c       	i2c-1-mux (chan_id 7)           	I2C adapter
@@ -226,16 +230,19 @@ $ make clean
 
 <target board begin> // $ ssh root@<your-target-ip>
 $ depmod -a
-$ vi /etc/modules-load.d/pmod8ld.conf
-+pmod8ld
-$ vi /etc/modules-load.d/pmodals.conf
-+pmodals
-$ vi /etc/modules-load.d/pmodtmp2.conf
-+pmodtmp2
+$ echo pmod8ld > /etc/modules-load.d/pmod8ld.conf
+$ echo pmodals > /etc/modules-load.d/pmodals.conf
+$ echo pmodtmp2 > /etc/modules-load.d/pmodtmp2.conf
 $ reboot
 <target board end>
 
 <target board begin> // $ ssh root@<your-target-ip>
+$ lsmod
+Module                  Size  Used by
+pmod8ld                16384  0
+pmodtmp2               16384  0
+pmodals                16384  0
+
 $ cd /sys/devices/platform/pmod8ld
 $ cat bits
 0
@@ -382,6 +389,8 @@ $ cat adc
 <target board end>
 
 $ cd ~/work/zynqmp_linux/petalinux/ultra96/components/plnx_workspace/sources/linux-xlnx
+$ git config --global user.email "hokim@inipro.net"
+$ git config --global user.name "Hyunok Kim"
 $ git add .
 $ git commit -s -m "Add pmodtmp2"
 $ git format-patch -1

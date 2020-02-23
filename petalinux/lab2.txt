@@ -11,7 +11,7 @@ $ cmake ..
 $ make
 $ scp hello_world root@<your-target-ip>:.
 
-$ cd ~/work/zynqmp_linux/petalinux/workspaces/hello_qt
+$ cd ../../hello_qt
 $ mkdir build
 $ cd build
 $ cmake ..
@@ -58,6 +58,7 @@ $ rpm -ql helloworld
 /usr/bin/hello_world
 
 $ hello_world
+Hello World!!!
 
 $ dnf -y --refresh install helloqt
 $ rpm -ql helloqt
@@ -87,10 +88,6 @@ if true && type update-rc.d >/dev/null 2>/dev/null; then
 	fi
 	update-rc.d $OPT autostart start 99 5 .
 fi
-
-
-$ ls /etc/rc5.d/*
-/etc/rc5.d/S99autostart
 
 $ ls -l /etc/rc5.d/S99autostart
 lrwxrwxrwx 1 root root 19 Feb 14 11:18 /etc/rc5.d/S99autostart -> ../init.d/autostart

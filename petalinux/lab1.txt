@@ -1,3 +1,4 @@
+$ cd ~/work/zynqmp_linux/petalinux
 $ petalinux-create -t project -n ultra96 --template zynqMP
 $ cd ultra96
 $ petalinux-config --get-hw-description=../../hw1/
@@ -250,7 +251,7 @@ $ sync
 
 $ cd ~/work/zynqmp_linux/petalinux/ultra96
 $ petalinux-build -s
-$ cp images/linux/sdk.sh ..
+$ mv images/linux/sdk.sh ..
 
 $ mkdir pre-built
 $ cp images/linux/BOOT.BIN pre-built/

@@ -47,6 +47,20 @@ $ petalinux-package --force --boot --fsbl images/linux/zynqmp_fsbl.elf --u-boot 
 
 $ scp images/linux/{BOOT.BIN,image.ub} root@<your-target-ip>:/media/card
 
+<target board begin> // $ ssh root@<your-target-ip>
+$ ls /dev/dri/
+by-path  card0
+$ ls -l /sys/class/drm/card*
+lrwxrwxrwx 1 root root    0 Feb 18 07:33 card0 -> ../../devices/platform/amba/fd4a0000.zynqmp-display/drm/card0
+lrwxrwxrwx 1 root root    0 Feb 18 07:33 card0-DP-1 -> ../../devices/platform/amba/fd4a0000.zynqmp-display/drm/card0/card0-DP-1
+$ lsmod
+Module                  Size  Used by
+uio_pdrv_genirq        16384  0
+$ ls /sys/class/uio/
+uio0  uio1  uio2  uio3
+$ reboot
+<target board end>
+
 $ cd ~/work/zynqmp_linux/petalinux/workspaces
 $ unset LD_LIBRARY_PATH
 $ source ~/sdk/environment-setup-aarch64-xilinx-linux
@@ -59,20 +73,13 @@ $ scp vadd root@<your-target-ip>:.
 
 <target board begin> // $ ssh root@<your-target-ip>
 $ ls /dev/dri/
-by-path  card0
-$ ls -l /sys/class/drm/card*
-lrwxrwxrwx 1 root root    0 Feb 18 07:33 card0 -> ../../devices/platform/amba/fd4a0000.zynqmp-display/drm/card0
-lrwxrwxrwx 1 root root    0 Feb 18 07:33 card0-DP-1 -> ../../devices/platform/amba/fd4a0000.zynqmp-display/drm/card0/card0-DP-1
-$ reboot
-<target board end>
-
-<target board begin> // $ ssh root@<your-target-ip>
-$ ls /dev/dri/
 by-path  card0  card1  renderD128
 $ ls -l /sys/class/drm/card*
 lrwxrwxrwx 1 root root 0 Feb 18 07:59 /sys/class/drm/card0 -> ../../devices/platform/amba/fd4a0000.zynqmp-display/drm/card0
 lrwxrwxrwx 1 root root 0 Feb 18 07:59 /sys/class/drm/card0-DP-1 -> ../../devices/platform/amba/fd4a0000.zynqmp-display/drm/card0/card0-DP-1
 lrwxrwxrwx 1 root root 0 Feb 18 08:00 /sys/class/drm/card1 -> ../../devices/platform/zyxclm_drm/drm/card1
+$ ls /sys/class/uio/
+uio0  uio1  uio2  uio3 uio4
 $ cat /sys/class/uio/uio4/name
 vadd
 $ ls /dev/uio4
