@@ -1,0 +1,143 @@
+$ cd ~/work/zynqmp_linux/petalinux/ultra96
+$ petalinux-config --silentconfig --get-hw-description=../../hw5/
+
+$ petalinux-build -c device-tree -x configure
+
+$ vi project-spec/meta-user/recipes-bsp/device-tree/files/system-user.dtsi
+-&amba_pl {
+-    pcam_clk: pcam_clk {
+-        compatible = "fixed-clock";
+-        #clock-cells = <0>;
+-        clock-frequency = <12000000>;
+-    };
+-};
+-
+-&i2csw_1 {
+-    ov5640: camera@3c {
+-        compatible = "ovti,ov5640";
+-        reg = <0x3c>;
+-        clock-names = "xclk";
+-        clocks = <&pcam_clk>;
+-        powerdown-gpios = <&gpio 36 1>;
+-        reset-gpios = <&gpio 39 1>;
+-
+-        port {
+-            ov5640_out: endpoint {
+-                remote-endpoint = <&csiss_in>;
+-                clock-lanes = <0>;
+-                data-lanes = <1 2>;
+-            };
+-        };
+-    };
+-};
+-
+-&mipi_csi2_rx_subsyst_0 {
+-    compatible = "xlnx,mipi-csi2-rx-subsystem-4.0";
+-    reset-gpios = <&gpio 78 1>;
+-};
+-
+-&csiss_port0 {
+-    /delete-property/ xlnx,cfa-pattern;
+-    xlnx,video-format = <0>;
+-};
+-
+-&csiss_port1 {
+-    /delete-property/ xlnx,cfa-pattern;
+-    xlnx,video-format = <0>;
+-};
+-
+-&csiss_in {
+-    data-lanes = <1 2>;
+-    remote-endpoint =  <&ov5640_out>;
+-};
+-
+-&v_frmbuf_wr_0 {
+-    compatible = "xlnx,axi-frmbuf-wr-v2.1";
+-};
++&axi_uart16550_0 {
++    port-number = <0>;
++};  
+
+$ petalinux-build -c virtual/boot-bin
+
+$ petalinux-package --force --boot --fsbl images/linux/zynqmp_fsbl.elf --u-boot images/linux/u-boot.elf --pmufw images/linux/pmufw.elf --fpga images/linux/system.bit
+
+$ scp images/linux/BOOT.BIN root@<your-target-ip>:/media/card
+
+$ cd ~/work/zynqmp_linux/petalinux/ultra96
+$ petalinux-build -c kernel -x configure
+$ petalinux-config
+Yocto Settings -> Build tool
+(X) devtool
+Exit
+
+$ petalinux-build -c kernel -x modify
+$ cd ~/work/zynqmp_linux/petalinux/ultra96/components/plnx_workspace/sources/linux-xlnx
+$ vi drivers/tty/serial/8250/8250_of.c
+    /* Check for a fixed line number */
+-    ret = of_alias_get_id(np, "serial");
+-    if (ret >= 0)
+-        port->line = ret;
++    if (of_property_read_u32(np, "port-number", &prop) == 0)
++        port->line = prop;
+
+$ cd ~/work/zynqmp_linux/petalinux/ultra96
+$ petalinux-build -c kernel 
+
+$ scp images/linux/image.ub root@<your-target-ip>:/media/card
+
+
+$ petalinux-build -c python-pyserial
+$ petalinux-build -c package-index
+$ cd build/tmp/deploy/rpm
+$ python3 -m http.server 5678
+
+<target board begin> // $ ssh root@<your-target-ip>
+$ ls -l /sys/class/tty/ttyS*
+lrwxrwxrwx 1 root root 0 Jan  1  1970 /sys/class/tty/ttyS0 -> ../../devices/platform/serial8250/tty/ttyS0
+lrwxrwxrwx 1 root root 0 Jan  1  1970 /sys/class/tty/ttyS1 -> ../../devices/platform/serial8250/tty/ttyS1
+lrwxrwxrwx 1 root root 0 Jan  1  1970 /sys/class/tty/ttyS2 -> ../../devices/platform/serial8250/tty/ttyS2
+lrwxrwxrwx 1 root root 0 Jan  1  1970 /sys/class/tty/ttyS3 -> ../../devices/platform/serial8250/tty/ttyS3
+
+$ dnf -y --refresh install python-pyserial
+
+$ reboot
+<target board end>
+
+<target board begin> // $ ssh root@<your-target-ip>
+$ ls -l /sys/class/tty/ttyS*
+lrwxrwxrwx 1 root root 0 Mar  4 10:15 /sys/class/tty/ttyS0 -> ../../devices/platform/amba_pl@0/80000000.serial/tty/ttyS0
+lrwxrwxrwx 1 root root 0 Mar  4 10:15 /sys/class/tty/ttyS1 -> ../../devices/platform/serial8250/tty/ttyS1
+lrwxrwxrwx 1 root root 0 Mar  4 10:15 /sys/class/tty/ttyS2 -> ../../devices/platform/serial8250/tty/ttyS2
+lrwxrwxrwx 1 root root 0 Mar  4 10:15 /sys/class/tty/ttyS3 -> ../../devices/platform/serial8250/tty/ttyS3
+
+$ miniterm.py -p /dev/ttyS0 -b 115200
+--- Miniterm on /dev/ttyS0: 115200,8,N,1 ---
+--- Quit: Ctrl+]  |  Menu: Ctrl+T | Help: Ctrl+T followed by Ctrl+H ---
+
+
+<target board end>
+
+$ miniterm.py -p /dev/ttyUSB2 -b 115200
+--- Miniterm on /dev/ttyUSB2: 115200,8,N,1 ---
+--- Quit: Ctrl+]  |  Menu: Ctrl+T | Help: Ctrl+T followed by Ctrl+H ---
+
+$ cd ~/work/zynqmp_linux/petalinux/ultra96/components/plnx_workspace/sources/linux-xlnx
+$ git add .
+$ git commit -s -m "Use port-number instead of serial for port numbering"
+$ git format-patch -1
+
+$ cd ~/work/zynqmp_linux/petalinux/ultra96
+$ cp components/plnx_workspace/sources/linux-xlnx/0001-Use-port-number-instead-of-serial-for-port-numbering.patch project-spec/meta-user/recipes-kernel/linux/linux-xlnx/
+$ vi project-spec/meta-user/recipes-kernel/linux/linux-xlnx_2019.2.bbappend
+SRC_URI += "file://devtool-fragment.cfg \
+            file://0001-Add-pmodtmp2.patch \
++			file://0001-Use-port-number-instead-of-serial-for-port-numbering.patch \
+            "
+
+$ petalinux-config
+Yocto Settings -> Build tool
+(X) bitbake
+Exit
+$ petalinux-build -c kernel -x reset
+
