@@ -1,4 +1,4 @@
-# <a href="http://inipro.net/goods/goods_view.php?goodsNo=1000617315">Embedded Linux on Zynq UltraScale+ MPSoC 교육</a>
+# <a href="https://www.inipro.net/goods/goods_view.php?goodsNo=1000618159">Embedded Linux on Zynq UltraScale+ MPSoC</a>
 
 # Download
  - <a href="https://inipro-my.sharepoint.com/:u:/g/personal/admin_inipro_onmicrosoft_com/EeXpJJ4mbUFOn1QrDAHfQNsB-nCzEXukrICUm33XWZkjpQ">ultra96v1-2019.2.bsp</a>
